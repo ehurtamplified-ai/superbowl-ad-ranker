@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Super Bowl Ad Ranking Matrix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --white: #ffffff;
+            --grey-light: #f5f5f5;
+            --grey-medium: #e0e0e0;
+            --grey-dark: #4a4a4a;
+            --grey-darker: #2d2d2d;
+            --teal: #008080;
+            --teal-light: #00a3a3;
+            --teal-dark: #006666;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: var(--grey-light);
+            color: var(--grey-darker);
+            min-height: 100vh;
+            padding: 1.5rem;
+            -webkit-text-size-adjust: 100%;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border-left: 5px solid var(--teal);
+        }
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--grey-darker);
+            margin-bottom: 0.35rem;
+        }
+        .subtitle { color: var(--grey-dark); font-size: 0.9rem; }
+        .instructions {
+            background: var(--white);
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--grey-medium);
+            font-size: 0.85rem;
+            color: var(--grey-dark);
+            line-height: 1.5;
+        }
+        .instructions strong { color: var(--teal-dark); }
+        .ranking-form {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--grey-light);
+        }
+        .form-header h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--teal-dark);
+            white-space: nowrap;
+        }
+        .ad-name-input { flex: 1; }
+        .ad-name-input input {
+            width: 100%;
+            padding: 0.7rem 0.85rem;
+            border: 2px solid var(--grey-medium);
+            border-radius: 6px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .ad-name-input input:focus { outline: none; border-color: var(--teal); }
+        .ad-name-input input::placeholder { color: #999; }
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        .category-card {
+            background: var(--grey-light);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--grey-medium);
+        }
+        .category-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--grey-darker);
+            margin-bottom: 0.2rem;
+        }
+        .category-desc {
+            font-size: 0.75rem;
+            color: var(--grey-dark);
+            margin-bottom: 0.6rem;
+            line-height: 1.4;
+        }
+        .rating-buttons { display: flex; gap: 0.3rem; }
+        .rating-btn {
+            flex: 1;
+            min-width: 36px;
+            height: 42px;
+            border: 2px solid var(--grey-medium);
+            background: var(--white);
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--grey-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .rating-btn:hover { border-color: var(--teal); color: var(--teal); }
+        .rating-btn.selected { background: var(--teal); border-color: var(--teal); color: var(--white); }
+        .submit-section {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 1rem;
+            border-top: 2px solid var(--grey-light);
+        }
+        .submit-btn {
+            background: var(--teal);
+            color: var(--white);
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            width: 100%;
+        }
+        .submit-btn:hover { background: var(--teal-dark); }
+        .submit-btn:disabled { background: var(--grey-medium); cursor: not-allowed; }
+        .results-section {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            background: var(--grey-darker);
+            color: var(--white);
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .results-header h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .header-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .action-btn {
+            color: var(--white);
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 5px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-pdf { background: var(--teal); }
+        .btn-pdf:hover { background: var(--teal-light); }
+        .results-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .results-table th {
+            background: var(--grey-light);
+            padding: 0.85rem 0.5rem;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: var(--grey-darker);
+            border-bottom: 2px solid var(--grey-medium);
+            white-space: nowrap;
+        }
+        .results-table th:first-child {
+            text-align: left;
+            padding-left: 1rem;
+            min-width: 150px;
+        }
+        .results-table th:last-child { background: var(--teal); color: var(--white); }
+        .results-table td {
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--grey-medium);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+        .results-table td:first-child {
+            text-align: left;
+            padding-left: 1rem;
+            font-weight: 600;
+            color: var(--grey-darker);
+        }
+        .results-table td:last-child {
+            background: var(--grey-light);
+            font-weight: 700;
+            color: var(--teal-dark);
+            font-size: 0.95rem;
+        }
+        .results-table tr:hover td { background: rgba(0,128,128,0.04); }
+        .results-table tr:hover td:last-child { background: rgba(0,128,128,0.1); }
+        .empty-state { padding: 2.5rem 1.5rem; text-align: center; color: var(--grey-dark); }
+        .empty-state p { font-size: 0.9rem; }
+        .score-cell { font-weight: 600; }
+        .score-low { color: #c0392b; }
+        .score-mid { color: var(--grey-dark); }
+        .score-high { color: var(--teal-dark); }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.25rem 0.4rem;
+            transition: color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .delete-btn:hover { color: #c0392b; }
+        .ad-name-cell { display: flex; align-items: center; justify-content: space-between; gap: 0.25rem; }
+
+        /* Mobile Cards View */
+        .mobile-cards { display: none; padding: 1rem; }
+        .mobile-card {
+            background: var(--grey-light);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--grey-medium);
+            position: relative;
+        }
+        .mobile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        .mobile-card-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--grey-darker);
+        }
+        .mobile-card-rater {
+            font-size: 0.8rem;
+            color: var(--grey-dark);
+            margin-top: 0.15rem;
+        }
+        .mobile-card-total {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: var(--teal-dark);
+            text-align: right;
+            line-height: 1;
+        }
+        .mobile-card-total span {
+            display: block;
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: var(--grey-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.15rem;
+        }
+        .mobile-card-scores {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+        }
+        .mobile-score-item {
+            background: var(--white);
+            border-radius: 6px;
+            padding: 0.45rem 0.35rem;
+            text-align: center;
+        }
+        .mobile-score-label {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: var(--grey-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.15rem;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .mobile-score-value {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .mobile-card-delete {
+            position: absolute;
+            bottom: 0.75rem;
+            right: 0.75rem;
+            background: none;
+            border: 1px solid #ddd;
+            color: #999;
+            cursor: pointer;
+            font-size: 0.7rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-family: 'Open Sans', sans-serif;
+            transition: all 0.2s;
+        }
+        .mobile-card-delete:hover { color: #c0392b; border-color: #c0392b; }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--grey-darker);
+            color: var(--white);
+            padding: 0.85rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 0.85rem;
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.35s ease;
+            pointer-events: none;
+            text-align: center;
+            max-width: 90vw;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        @media (max-width: 768px) {
+            body { padding: 0.75rem; }
+            header { padding: 1.25rem; border-left-width: 4px; }
+            h1 { font-size: 1.25rem; }
+            .subtitle { font-size: 0.8rem; }
+            .instructions { padding: 0.85rem 1rem; font-size: 0.8rem; }
+            .ranking-form { padding: 1.25rem; }
+            .form-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+            .categories-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+            .category-card { padding: 0.85rem; }
+            .rating-btn { height: 44px; font-size: 1rem; }
+            .results-header { padding: 1rem 1.25rem; }
+            .results-header h2 { font-size: 0.9rem; width: 100%; }
+            .header-buttons { width: 100%; }
+            .action-btn { flex: 1; justify-content: center; padding: 0.7rem; }
+            .results-table-wrapper { display: none; }
+            .mobile-cards { display: block; }
+        }
+        @media (min-width: 769px) {
+            .mobile-cards { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Super Bowl Ad Ranking Matrix</h1>
+            <p class="subtitle">Full-Service Agency Group</p>
+        </header>
+        <div class="instructions">
+            <strong>Instructions:</strong> Enter the brand name, then rank each ad on a scale of 1–7, with <strong>1</strong> as the lowest score, <strong>4</strong> as neutral, and <strong>7</strong> as highest score. Results are shared across all participants in real time.
+        </div>
+        <div class="ranking-form">
+            <div class="form-header">
+                <h2>Brand Name:</h2>
+                <div class="ad-name-input">
+                    <input type="text" id="adName" placeholder="e.g., Doritos – Flying Baby" autocomplete="off">
+                </div>
+            </div>
+            <div class="categories-grid" id="categoriesGrid"></div>
+            <div class="submit-section">
+                <button class="submit-btn" id="submitBtn" onclick="submitRanking()">Add to Matrix</button>
+            </div>
+        </div>
+        <div class="results-section">
+            <div class="results-header">
+                <h2>Ranking Matrix</h2>
+                <div class="header-buttons">
+                    <button class="action-btn btn-pdf" onclick="downloadPDF()">&#128196; Download PDF</button>
+                </div>
+            </div>
+            <div class="results-table-wrapper">
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Brand Name</th>
+                            <th>Relevance</th>
+                            <th>Branding</th>
+                            <th>Persuasion</th>
+                            <th>Creative</th>
+                            <th>Emotional</th>
+                            <th>Clarity</th>
+                            <th>Originality</th>
+                            <th>Strategic</th>
+                            <th>TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+                <div class="empty-state" id="emptyState">
+                    <p>No ads ranked yet. Add your first ad above to begin.</p>
+                </div>
+            </div>
+            <div class="mobile-cards" id="mobileCards"></div>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const categories = [
+            { id:'relevance', name:'Relevance to Audience', desc:'Fit with Super Bowl viewers and assumed advertiser target markets.' },
+            { id:'branding', name:'Branding Clarity', desc:'How clearly the brand and offering come through (logo presence, linkage, recall).' },
+            { id:'persuasiveness', name:'Persuasiveness', desc:'Likely to shift attitudes or intent (does it make you more likely to consider/buy?).' },
+            { id:'creative', name:'Creative Concept', desc:'Strength and originality of the core concept (not just production polish).' },
+            { id:'emotional', name:'Emotional Impact', desc:'How strongly it makes you feel something (humor, warmth, tension, etc.).' },
+            { id:'clarity', name:'Clarity of Message', desc:'Is the main point instantly understandable in one viewing?' },
+            { id:'originality', name:'Originality', desc:'How fresh and unexpected is the approach compared to other ads and category norms?' },
+            { id:'strategic', name:'Strategic Fit', desc:'Does it support a clear brand objective (positioning, launch, promo, brand lift)?' }
+        ];
+
+        const catShort = { relevance:'Relev', branding:'Brand', persuasiveness:'Persuas', creative:'Creative', emotional:'Emot', clarity:'Clarity', originality:'Origin', strategic:'Strat' };
+        let rankings = [];
+        let currentRatings = {};
+
+        function toast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 2800);
+        }
+
+        function initializeForm() {
+            const grid = document.getElementById('categoriesGrid');
+            grid.innerHTML = '';
+            categories.forEach(cat => {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                card.innerHTML = `
+                    <div class="category-name">${cat.name}</div>
+                    <div class="category-desc">${cat.desc}</div>
+                    <div class="rating-buttons" id="rating-${cat.id}">
+                        ${[1,2,3,4,5,6,7].map(n => `<button class="rating-btn" data-category="${cat.id}" data-value="${n}" onclick="selectRating('${cat.id}',${n})">${n}</button>`).join('')}
+                    </div>`;
+                grid.appendChild(card);
+            });
+            currentRatings = {};
+            loadAllRankings();
+        }
+
+        function loadAllRankings() {
+            try {
+                const stored = localStorage.getItem('superbowl_rankings');
+                rankings = stored ? JSON.parse(stored) : [];
+            } catch(e) {
+                console.log('No existing rankings found');
+                rankings = [];
+            }
+            updateTable();
+        }
+
+        function saveAllRankings() {
+            try {
+                localStorage.setItem('superbowl_rankings', JSON.stringify(rankings));
+                return true;
+            } catch(e) {
+                console.error('Storage error:', e);
+                return false;
+            }
+        }
+
+        function selectRating(catId, val) {
+            currentRatings[catId] = val;
+            document.querySelectorAll(`#rating-${catId} .rating-btn`).forEach(btn => {
+                btn.classList.toggle('selected', parseInt(btn.dataset.value) === val);
+            });
+        }
+
+        function submitRanking() {
+            const adName = document.getElementById('adName').value.trim();
+            if (!adName) { toast('Please enter a brand name.'); return; }
+            if (Object.keys(currentRatings).length !== categories.length) { toast('Please rate all categories.'); return; }
+
+            const total = Object.values(currentRatings).reduce((a,b) => a+b, 0);
+            const ts = Date.now();
+            const ranking = {
+                id: `${adName}_${ts}`,
+                name: adName,
+                ratings: { ...currentRatings },
+                total, 
+                timestamp: ts
+            };
+            
+            rankings.push(ranking);
+            if (saveAllRankings()) {
+                updateTable();
+                resetForm();
+                toast('Ranking added to matrix!');
+            } else {
+                rankings.pop(); // Remove the ranking if save failed
+                toast('Error saving. Please try again.');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('adName').value = '';
+            currentRatings = {};
+            document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+        }
+
+        function getScoreClass(s) { return s <= 2 ? 'score-low' : s >= 6 ? 'score-high' : 'score-mid'; }
+
+        function updateTable() {
+            const tbody = document.getElementById('resultsBody');
+            const empty = document.getElementById('emptyState');
+            const mobile = document.getElementById('mobileCards');
+
+            if (rankings.length === 0) {
+                empty.style.display = 'block';
+                tbody.innerHTML = '';
+                mobile.innerHTML = '<div class="empty-state"><p>No ads ranked yet.</p></div>';
+                return;
+            }
+            empty.style.display = 'none';
+            const sorted = [...rankings].sort((a,b) => b.total - a.total);
+
+            tbody.innerHTML = sorted.map(r => `
+                <tr>
+                    <td><div class="ad-name-cell"><span>${r.name}</span><button class="delete-btn" onclick="deleteRanking('${r.id}')" title="Remove">&times;</button></div></td>
+                    ${categories.map(c => `<td class="score-cell ${getScoreClass(r.ratings[c.id])}">${r.ratings[c.id]}</td>`).join('')}
+                    <td>${r.total}</td>
+                </tr>`).join('');
+
+            mobile.innerHTML = sorted.map(r => `
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div>
+                            <div class="mobile-card-title">${r.name}</div>
+                        </div>
+                        <div class="mobile-card-total">${r.total}<span>/ 56</span></div>
+                    </div>
+                    <div class="mobile-card-scores">
+                        ${categories.map(c => `
+                            <div class="mobile-score-item">
+                                <div class="mobile-score-label">${catShort[c.id]}</div>
+                                <div class="mobile-score-value ${getScoreClass(r.ratings[c.id])}">${r.ratings[c.id]}</div>
+                            </div>`).join('')}
+                    </div>
+                    <button class="mobile-card-delete" onclick="deleteRanking('${r.id}')">Remove</button>
+                </div>`).join('');
+        }
+
+        function deleteRanking(id) {
+            if (!confirm('Delete this ranking?')) return;
+            rankings = rankings.filter(r => r.id !== id);
+            if (saveAllRankings()) {
+                updateTable();
+                toast('Ranking removed.');
+            } else {
+                toast('Error deleting. Try again.');
+                loadAllRankings(); // Reload from storage
+            }
+        }
+
+        function buildPDF() {
+            if (rankings.length === 0) { toast('No rankings to export.'); return null; }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            // Title
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(18);
+            doc.setTextColor(0, 102, 102);
+            doc.text('Super Bowl Ad Ranking Matrix', 14, 18);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text('Full-Service Agency Group', 14, 25);
+            const now = new Date();
+            doc.text(`Generated: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`, 14, 31);
+
+            // Table
+            const sorted = [...rankings].sort((a,b) => b.total - a.total);
+            const head = [['Brand Name','Relevance','Branding','Persuasion','Creative','Emotional','Clarity','Originality','Strategic','TOTAL']];
+            const body = sorted.map(r => [
+                r.name,
+                r.ratings.relevance, r.ratings.branding, r.ratings.persuasiveness,
+                r.ratings.creative, r.ratings.emotional, r.ratings.clarity, r.ratings.originality, r.ratings.strategic,
+                r.total
+            ]);
+
+            doc.autoTable({
+                head, body,
+                startY: 36,
+                theme: 'grid',
+                headStyles: { fillColor: [0,102,102], textColor: 255, fontStyle: 'bold', fontSize: 8, halign: 'center' },
+                bodyStyles: { fontSize: 9, halign: 'center' },
+                columnStyles: {
+                    0: { halign: 'left', cellWidth: 55 },
+                    9: { fontStyle: 'bold', fillColor: [230,245,245], textColor: [0,80,80] }
+                },
+                alternateRowStyles: { fillColor: [248,248,248] },
+                margin: { left: 14, right: 14 }
+            });
+
+            // Summary
+            const avgTotal = (sorted.reduce((s,r) => s + r.total, 0) / sorted.length).toFixed(1);
+            const best = sorted[0];
+            const finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.setTextColor(0,102,102);
+            doc.text('Summary', 14, finalY);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(60);
+            doc.text(`Total Entries: ${sorted.length}   |   Average Score: ${avgTotal} / 56   |   Top Rated: ${best.name} (${best.total}/56)`, 14, finalY + 6);
+
+            return doc;
+        }
+
+        function downloadPDF() {
+            const doc = buildPDF();
+            if (!doc) return;
+            doc.save('SuperBowl_Ad_Rankings.pdf');
+            toast('PDF downloaded!');
+        }
+
+        initializeForm();
+    </script>
+</body>
+</html>

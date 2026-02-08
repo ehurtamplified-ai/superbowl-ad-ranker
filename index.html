@@ -434,8 +434,6 @@
                             <th>Creative</th>
                             <th>Emotional</th>
                             <th>Clarity</th>
-                            <th>Originality</th>
-                            <th>Strategic</th>
                             <th>TOTAL</th>
                         </tr>
                     </thead>
@@ -458,11 +456,9 @@
             { id:'creative', name:'Creative Concept', desc:'Strength and originality of the core concept (not just production polish).' },
             { id:'emotional', name:'Emotional Impact', desc:'How strongly it makes you feel something (humor, warmth, tension, etc.).' },
             { id:'clarity', name:'Clarity of Message', desc:'Is the main point instantly understandable in one viewing?' },
-            { id:'originality', name:'Originality', desc:'How fresh and unexpected is the approach compared to other ads and category norms?' },
-            { id:'strategic', name:'Strategic Fit', desc:'Does it support a clear brand objective (positioning, launch, promo, brand lift)?' }
         ];
 
-        const catShort = { relevance:'Relev', branding:'Brand', persuasiveness:'Persuas', creative:'Creative', emotional:'Emot', clarity:'Clarity', originality:'Origin', strategic:'Strat' };
+        const catShort = { relevance:'Relev', branding:'Brand', persuasiveness:'Persuas', creative:'Creative', emotional:'Emot', clarity:'Clarity',};
         let rankings = [];
         let currentRatings = {};
 
@@ -624,11 +620,11 @@
 
             // Table
             const sorted = [...rankings].sort((a,b) => b.total - a.total);
-            const head = [['Brand Name','Relevance','Branding','Persuasion','Creative','Emotional','Clarity','Originality','Strategic','TOTAL']];
+            const head = [['Brand Name','Relevance','Branding','Persuasion','Creative','Emotional','Clarity','TOTAL']];
             const body = sorted.map(r => [
                 r.name,
                 r.ratings.relevance, r.ratings.branding, r.ratings.persuasiveness,
-                r.ratings.creative, r.ratings.emotional, r.ratings.clarity, r.ratings.originality, r.ratings.strategic,
+                r.ratings.creative, r.ratings.emotional, r.ratings.clarity,
                 r.total
             ]);
 
